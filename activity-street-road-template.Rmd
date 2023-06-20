@@ -1,6 +1,6 @@
 ---
 title: "Activity: Street or Road?"
-author: "YOUR NAME HERE"
+author: "Tsu-yen Su"
 output: html_notebook
 ---
 
@@ -9,9 +9,9 @@ output: html_notebook
 ```{r}
 #load libraries 
 
+library(tidyverse)
 #load in the data here 
 # we will only be using the "street-addresses.csv" file from the text
-
 
 
 ```
@@ -19,13 +19,25 @@ output: html_notebook
 ## Recreate Solved Example using `sample(50)`
 
 ```{r}
-
+Addresses <- read_csv("https://mdbeckman.github.io/dcSupplement/data/street-addresses.csv") 
+Sample <- 
+  Addresses %>%
+  sample_n(size = 50)
 
 ```
 
 ## Recreate Soved Example using the entire `Address` data set
 
 ```{r}
+Sample <- Addresses %>% sample_n(size = 50)
+
+pattern <- "BOX\\s+(\\d+)"
+
+Matches <- Sample %>% filter(grepl(pattern, address))
+
+Dont <- Sample %>% filter(!grepl(pattern, address))
+
+BoxNumbers <- Sample %>% filter(grepl(pattern, address)) %>% tidyr::extract(address, into = "boxnum", regex = pattern)
 
 
 ```
@@ -33,11 +45,12 @@ output: html_notebook
 #### Additional Question: How many addresses are a PO BOX (including NCSU BOX)? 
 
 ```{r}
+POBoxCount <- Addresses %>% filter(grepl(pattern, address)) %>% count()
 
 
 ```
 
-My answer here...... 
+1
 
 
 ## Back to the Streets: Your Turn
@@ -54,21 +67,31 @@ LeftOvers <-
           )
 ```
 
-My answer here.......
+pattern <- "(ST|RD|ROAD)": Assigns the regular expression pattern to the variable pattern
+LeftOvers <- Addresses %>% ...: Filters the Addresses dataset to keep only the addresses that do not match the street ending pattern (ST|RD|ROAD), and also filters out addresses that contain "APT" or "UNIT" followed by a number, and addresses that contain the word "BOX".
 
 #### Part 2: Implement your method on the entire `Addresses` data set. Explain how your code works line by line.
 
 ```{r}
+pattern <- "(ST|RD|ROAD)"
+LeftOvers <- Addresses %>% 
+  filter(!grepl(pattern, address),
+         !grepl("\\sAPT|UNIT\\s[\\d]+$", address),
+         !grepl(" BOX ", address))
 
 
 
 ```
-
-My answer here.......
+pattern <- "(ST|RD|ROAD)": Assigns the regular expression pattern to the variable pattern, which matches street endings like "ST," "RD," or "ROAD."
+LeftOvers <- Addresses %>% ...: Filters the Addresses dataset to keep only the addresses that do not match the street ending pattern (ST|RD|ROAD), and also filters out addresses that contain "APT" or "UNIT" followed by a number, and addresses that contain the word "BOX".
 
 #### Additional Question 1: Present your result from part 2 by providing a table in descending order of popularity for the street name endings you found
 
 ```{r}
+StreetEndingsCount <- Addresses %>% 
+  filter(grepl(pattern, address)) %>% 
+  count(address = str_extract(address, pattern)) %>% 
+  arrange(desc(n))
 
 
 ```
@@ -78,9 +101,17 @@ My answer here.......
 Note: make sure your order street names according to popularity, not alphabetically.
 
 ```{r}
+library(ggplot2)
+
+StreetEndingsPlot <- StreetEndingsCount %>% 
+  ggplot(aes(x = address, y = n, fill = address)) +
+  geom_bar(stat = "identity") +
+  coord_flip() +
+  labs(x = "Street Name Endings", y = "Frequency", title = "Frequency of Street Name Endings") +
+ 
 
 ```
 
 #### Additional Question 3: Comment on any patterns you see
 
-My answer here.......
+the most common street name endings in the dataset are "ST," "RD," and "AVE." There are also other less common street name endings such as "LN," "CT," "DR," and "PL." These patterns provide insights into the variety of street name endings present in the dataset.
